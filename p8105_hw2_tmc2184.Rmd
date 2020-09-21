@@ -107,10 +107,31 @@ Problem 2
 ```{r read data}
 # Read and clean the data; retain line, station, name, station latitude / longitude, routes served, entry, vending, entrance type, and ADA compliance. Convert the entry variable from character (YES vs NO) to a logical variable (the ifelse or recode function may be useful).
 
+transit_data = read_csv(file = "./Data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
+                       col_types = cols(
+  .default = col_character(),
+  `Station Latitude` = col_double(),
+  `Station Longitude` = col_double(),
+  `ADA` = col_logical(),
+  `Free Crossover`= col_logical(),
+  `Entrance Latitude` = col_double(),
+  `Entrance Longitude` = col_double()
+)) %>%
+  janitor::clean_names() %>%
+  mutate(entry=ifelse(entry=="YES", TRUE, FALSE)) %>%
+  select(line, station_name, station_latitude, station_longitude, route1, route2, route3,
+         route4, route5, route6, route7, route8, route9, route10, route11, entry, vending,
+         entrance_type, ada)
+
 ```
 
+The "transit" dataset includes `r ncol(transit_data)` variables and `r nrow(transit_data)` observations.
 
-Write a short paragraph about this dataset – explain briefly what variables the dataset contains, describe your data cleaning steps so far, and give the dimension (rows x columns) of the resulting dataset. Are these data tidy?
+
+Write a short paragraph about this dataset – explain briefly what variables the dataset contains, describe your data cleaning steps so far,  Are these data tidy?
+
+
+
 Answer the following questions using these data:
 •	How many distinct stations are there? Note that stations are identified both by name and by line (e.g. 125th St A/B/C/D; 125st 1; 125st 4/5); the distinct function may be useful here.
 •	How many stations are ADA compliant?
