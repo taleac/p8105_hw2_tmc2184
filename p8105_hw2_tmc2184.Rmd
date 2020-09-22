@@ -114,36 +114,92 @@ transit_data = read_csv(file = "./Data/NYC_Transit_Subway_Entrance_And_Exit_Data
   `Station Longitude` = col_double(),
   `ADA` = col_logical(),
   `Free Crossover`= col_logical(),
+  `Entrance Type` = col_factor(),
   `Entrance Latitude` = col_double(),
   `Entrance Longitude` = col_double()
 )) %>%
   janitor::clean_names() %>%
-  mutate(entry=ifelse(entry=="YES", TRUE, FALSE)) %>%
+  mutate(entry=ifelse(entry=="YES", TRUE, FALSE), route1=str_to_upper(route1)) %>%
   select(line, station_name, station_latitude, station_longitude, route1, route2, route3,
-         route4, route5, route6, route7, route8, route9, route10, route11, entry, vending,
-         entrance_type, ada)
+         route4, route5, route6, route7, route8, route9, route10, route11, entry, entrance_type, 
+         vending, ada)
+head(transit_data)
+```
+
+The "transit" dataset includes `r ncol(transit_data)` variables and `r nrow(transit_data)` observations (i.e., station entrances/exits - some stations may have multiple entrances/exits). Variable names include the line, station name, station latitude and longitude, routes, entry, entrance type, vending, and ada compliance. Thus far, I imported the data, selected the previously mentioned variables, cleaned the data names, and made sure that ada compliance and entry were coded as logical variables (i.e., true or false). These data are not tidy; route is in 11 columns (i.e., one variable spread across multiple columns).
+
+```{r}
+#•	How many distinct stations are there? Note that stations are identified both by name and by line (e.g. 125th St A/B/C/D; 125st 1; 125st 4/5); the distinct function may be useful here.
+transit_data$full_name <- paste(transit_data$line, " ", transit_data$station_name)
+nrow(distinct(select(transit_data, full_name, ada)))
+```
+There are `r nrow(distinct(select(transit_data, full_name, ada)))` distinct stations in the transit dataset.
+
+```{r}
+#•	How many stations are ADA compliant?
+table(distinct(select(transit_data, full_name, ada))$ada)[2]
+
+#•	What proportion of station entrances / exits without vending allow entrance?
+novend <- subset(transit_data, vending=="NO")
+table(subset(select(transit_data, entry, vending), vending == "NO")$entry)[2]/(nrow(subset(select(transit_data, entry, vending),vending == "NO")))
+```
+Of the `r nrow(mdat)` unique stations, `r table(distinct(select(transit_data, full_name, ada))$ada)[2]` are ADA compliant.
+Of the `r nrow(novend)` station entrances/exits without vending, `r round((table(subset(select(transit_data, entry, vending), vending == "NO")$entry)[2]/(nrow(subset(select(transit_data, entry, vending),vending == "NO")))*100), 2)` percent allow entrance.
+
+```{r restructure}
+#Reformat data so that route number and route name are distinct variables. 
+
+  lines = list("1","2","3","4","5","6","7",
+                  "A","B","C","D","E","F","FS","G","GS","H","J","L","M","N","Q","R","Z")
+routes=list("route1","route2","route3","route4","route5","route6","route7","route8",
+            "route9","route10","route11")
+    # Iterate over the list of elements one by one
+    for (elem in lines)
+      {for (route in routes)
+    {
+        if (elem %in% unlist(transit_data[route])) 
+            {transit_data[elem] = TRUE}
+        else
+            {transit_data[elem] = FALSE}
+      }   
+    }
+    
+#drop old route variables
+transit_data2 = select(transit_data, -c(route1,route2,route3,route4,route5,route6,
+                                        route7,route8,route9,route10,route11))
+  
+
+#How many distinct stations serve the A train? 
+
+#Of the stations that serve the A train, how many are ADA compliant?
 
 ```
 
-The "transit" dataset includes `r ncol(transit_data)` variables and `r nrow(transit_data)` observations.
-
-
-Write a short paragraph about this dataset – explain briefly what variables the dataset contains, describe your data cleaning steps so far,  Are these data tidy?
-
-
-
-Answer the following questions using these data:
-•	How many distinct stations are there? Note that stations are identified both by name and by line (e.g. 125th St A/B/C/D; 125st 1; 125st 4/5); the distinct function may be useful here.
-•	How many stations are ADA compliant?
-•	What proportion of station entrances / exits without vending allow entrance?
-Reformat data so that route number and route name are distinct variables. How many distinct stations serve the A train? Of the stations that serve the A train, how many are ADA compliant?
-
-
 
 Problem 3
-This problem uses the FiveThirtyEight data; these data were gathered to create the interactive graphic on this page. In particular, we’ll use the data in pols-month.csv, unemployment.csv, and snp.csv. Our goal is to merge these into a single data frame using year and month as keys across datasets.
-First, clean the data in pols-month.csv. Use separate() to break up the variable mon into integer variables year, month, and day; replace month number with month name; create a president variable taking values gop and dem, and remove prez_dem and prez_gop; and remove the day variable.
-Second, clean the data in snp.csv using a similar process to the above. For consistency across datasets, arrange according to year and month, and organize so that year and month are the leading columns.
+
+```{r import pols data}
+pols_data = read_csv(file = "./Data/pols-month.csv", col_types="ciiiiiiii") %>%
+  janitor::clean_names() %>%
+  separate(mon, into = c("year", "month", "day"), sep = "-") %>%
+  mutate(month=as.integer(month),
+         month = month.name[month], 
+         president=prez_gop) %>%
+  mutate(president=recode(president, `0` = "dem", `1` = "gop", `2` = "gop")) %>%
+  select(-c(prez_dem,prez_gop,day))
+```
+
+```{r import snp data}
+snp_data = read_csv(file = "./Data/snp.csv", col_types="cd") %>%
+  janitor::clean_names() %>%
+  separate(date, into = c("month", "day", "year"), sep = "/")%>%
+  mutate(month = month.name[month]) %>%
+  select(year, month,close)
+
+```
+
+
+
 Third, tidy the unemployment data so that it can be merged with the previous datasets. This process will involve switching from “wide” to “long” format; ensuring that key variables have the same name; and ensuring that key variables take the same values.
 Join the datasets by merging snp into pols, and merging unemployment into the result.
 Write a short paragraph about these datasets. Explain briefly what each dataset contained, and describe the resulting dataset (e.g. give the dimension, range of years, and names of key variables).
