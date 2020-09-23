@@ -150,143 +150,29 @@ table(subset(select(transit_data, entry, vending), vending == "NO")$entry)[2]/(n
 Of the `r nrow(subset(select(transit_data, entry, vending), vending == "NO"))` station entrances/exits without vending, `r round((table(subset(select(transit_data, entry, vending), vending == "NO")$entry)[2]/(nrow(subset(select(transit_data, entry, vending),vending == "NO")))*100), 2)` percent allow entrance.
 
 ```{r restructure}
-transit_data = transit_data %>% mutate(
-       route_1 = ifelse ((route1=="1" | route2=="1" | route3=="1" | route4=="1" |
-                            route5=="1" | route6=="1" | route7=="1" | route8=="1" |
-                            route9=="1" | route10=="1" | route11=="1"), 
-                         TRUE, FALSE),
-       route_2 = ifelse ((route1=="2" | route2=="2" | route3=="2" | route4=="2" |
-                            route5=="2" | route6=="2" | route7=="2" | route8=="2" |
-                            route9=="2" | route10=="2" | route11=="2"), 
-                         TRUE, FALSE),
-       route_3 = ifelse ((route1=="3" | route2=="3" | route3=="3" | route4=="3" |
-                            route5=="3" | route6=="3" | route7=="3" | route8=="3" |
-                            route9=="3" | route10=="3" | route11=="3"), 
-                         TRUE, FALSE),
-       route_4 = ifelse ((route1=="4" | route2=="4" | route3=="4" | route4=="4" |
-                            route5=="4" | route6=="4" | route7=="4" | route8=="4" |
-                            route9=="4" | route10=="4" | route11=="4"), 
-                         TRUE, FALSE),
-       route_5 = ifelse ((route1=="5" | route2=="5" | route3=="5" | route4=="5" |
-                            route5=="5" | route6=="5" | route7=="5" | route8=="5" |
-                            route9=="5" | route10=="5" | route11=="5"), 
-                         TRUE, FALSE),
-       route_6 = ifelse ((route1=="6" | route2=="6" | route3=="6" | route4=="6" |
-                            route5=="6" | route6=="6" | route7=="6" | route8=="6" |
-                            route9=="6" | route10=="6" | route11=="6"), 
-                         TRUE, FALSE),
-       route_7 = ifelse ((route1=="7" | route2=="7" | route3=="7" | route4=="7" |
-                            route5=="7" | route6=="7" | route7=="7" | route8=="7" |
-                            route9=="7" | route10=="7" | route11=="7"), 
-                         TRUE, FALSE),
-       route_A = ifelse ((route1=="A" | route2=="A" | route3=="A" | route4=="A" |
-                            route5=="A" | route6=="A" | route7=="A" | route8=="A" |
-                            route9=="A" | route10=="A" | route11=="A"), 
-                         TRUE, FALSE),
-       route_B = ifelse ((route1=="B" | route2=="B" | route3=="B" | route4=="B" |
-                            route5=="B" | route6=="B" | route7=="B" | route8=="B" |
-                            route9=="B" | route10=="B" | route11=="B"), 
-                         TRUE, FALSE),
-       route_C = ifelse ((route1=="C" | route2=="C" | route3=="C" | route4=="C" |
-                            route5=="C" | route6=="C" | route7=="C" | route8=="C" |
-                            route9=="C" | route10=="C" | route11=="C"), 
-                         TRUE, FALSE),
-       route_D = ifelse ((route1=="D" | route2=="D" | route3=="D" | route4=="D" |
-                            route5=="D" | route6=="D" | route7=="D" | route8=="D" |
-                            route9=="D" | route10=="D" | route11=="D"), 
-                         TRUE, FALSE),
-       route_E = ifelse ((route1=="E" | route2=="E" | route3=="E" | route4=="E" |
-                            route5=="E" | route6=="E" | route7=="E" | route8=="E" |
-                            route9=="E" | route10=="E" | route11=="E"), 
-                         TRUE, FALSE),
-       route_F = ifelse ((route1=="F" | route2=="F" | route3=="F" | route4=="F" |
-                            route5=="F" | route6=="F" | route7=="F" | route8=="F" |
-                            route9=="F" | route10=="F" | route11=="F"), 
-                         TRUE, FALSE),
-       route_FS = ifelse ((route1=="FS" | route2=="FS" | route3=="FS" | route4=="FS" |
-                            route5=="FS" | route6=="FS" | route7=="FS" | route8=="FS" |
-                            route9=="FS" | route10=="FS" | route11=="FS"),
-                         TRUE, FALSE),
-       route_G = ifelse ((route1=="G" | route2=="G" | route3=="G" | route4=="G" |
-                            route5=="G" | route6=="G" | route7=="G" | route8=="G" |
-                            route9=="G" | route10=="G" | route11=="G"), 
-                         TRUE, FALSE),
-       route_GS = ifelse ((route1=="GS" | route2=="GS" | route3=="GS" | route4=="GS" |
-                            route5=="GS" | route6=="GS" | route7=="GS" | route8=="GS" |
-                            route9=="GS" | route10=="GS" | route11=="GS"), 
-                         TRUE, FALSE),
-       route_H = ifelse ((route1=="H" | route2=="H" | route3=="H" | route4=="H" |
-                            route5=="H" | route6=="H" | route7=="H" | route8=="H" |
-                            route9=="H" | route10=="H" | route11=="H"), 
-                         TRUE, FALSE),
-       route_J = ifelse ((route1=="J" | route2=="J" | route3=="J" | route4=="J" |
-                            route5=="J" | route6=="J" | route7=="J" | route8=="J" |
-                            route9=="J" | route10=="J" | route11=="J"), 
-                         TRUE, FALSE),
-       route_L = ifelse ((route1=="L" | route2=="L" | route3=="L" | route4=="L" |
-                            route5=="L" | route6=="L" | route7=="L" | route8=="L" |
-                            route9=="L" | route10=="L" | route11=="L"), 
-                         TRUE, FALSE),
-       route_M = ifelse ((route1=="M" | route2=="M" | route3=="M" | route4=="M" |
-                            route5=="M" | route6=="M" | route7=="M" | route8=="M" |
-                            route9=="M" | route10=="M" | route11=="M"), 
-                         TRUE, FALSE),
-       route_N = ifelse ((route1=="N" | route2=="N" | route3=="N" | route4=="N" |
-                            route5=="N" | route6=="N" | route7=="N" | route8=="N" |
-                            route9=="N" | route10=="N" | route11=="N"), 
-                         TRUE, FALSE),
-       route_Q = ifelse ((route1=="Q" | route2=="Q" | route3=="Q" | route4=="Q" |
-                            route5=="Q" | route6=="Q" | route7=="Q" | route8=="Q" |
-                            route9=="Q" | route10=="Q" | route11=="Q"), 
-                         TRUE, FALSE),
-       route_R = ifelse ((route1=="R" | route2=="R" | route3=="R" | route4=="R" |
-                            route5=="R" | route6=="R" | route7=="R" | route8=="R" |
-                            route9=="R" | route10=="R" | route11=="R"), 
-                         TRUE, FALSE),
-       route_Z = ifelse ((route1=="Z" | route2=="Z" | route3=="Z" | route4=="Z" |
-                            route5=="Z" | route6=="Z" | route7=="Z" | route8=="Z" |
-                            route9=="Z" | route10=="Z" | route11=="Z"), 
-                         TRUE, FALSE)) %>%
-                      replace_na(list(route_1=FALSE,
-                                      route_2=FALSE,
-                                      route_3=FALSE,
-                                      route_4=FALSE,
-                                      route_5=FALSE,
-                                      route_6=FALSE,
-                                      route_7=FALSE,
-                                      route_A=FALSE,
-                                      route_B=FALSE,
-                                      route_C=FALSE,
-                                      route_D=FALSE,
-                                      route_E=FALSE,
-                                      route_F=FALSE,
-                                      route_FS=FALSE,
-                                      route_G=FALSE,
-                                      route_GS=FALSE,
-                                      route_H=FALSE,
-                                      route_J=FALSE,
-                                      route_L=FALSE,
-                                      route_M=FALSE,
-                                      route_N=FALSE,
-                                      route_Q=FALSE,
-                                      route_R=FALSE,
-                                      route_Z=FALSE)) %>%
-  select(-c(route1,route2,route3,route4,route5,route6,
-                                       route7,route8,route9,route10,route11))
+lines = list("1","2","3","4","5","6","7",
+             "A","B","C","D","E","F","FS","G","GS","H","J","L","M","N","Q","R","Z")
+
+for (elem in lines){
+  for (i in 1:nrow(transit_data)){
+    transit_data[i, elem] = ifelse((elem %in% unlist(transit_data[i,5:15])), 'TRUE', 'FALSE')
+  }
+}
+
 ```
 
 
 ```{r}
 #How many distinct stations serve the A train? 
-table(distinct(select(transit_data, full_name, route_A))$route_A)
+table(distinct(select(transit_data, full_name, A))$A)
 
 #Of the stations that serve the A train, how many are ADA compliant?
-table(distinct(select(transit_data, full_name, route_A,ada))$route_A,
-      distinct(select(transit_data, full_name, route_A,ada))$ada)
+table(distinct(select(transit_data, full_name, A,ada))$A,
+      distinct(select(transit_data, full_name, A,ada))$ada)
 ```
-`r table(distinct(select(transit_data, full_name, route_A))$route_A)[2]` distinct stations serve the A train. Of these, `r 
-table(distinct(select(transit_data, full_name, route_A,ada))$route_A,
-      distinct(select(transit_data, full_name, route_A,ada))$ada)[2,2]` are ADA compliant.
+`r table(distinct(select(transit_data, full_name, A))$A)[2]` distinct stations serve the A train. Of these, `r 
+table(distinct(select(transit_data, full_name, A,ada))$A,
+      distinct(select(transit_data, full_name, A,ada))$ada)[2,2]` are ADA compliant.
 
 Problem 3
 
