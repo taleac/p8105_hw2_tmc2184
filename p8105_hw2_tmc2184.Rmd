@@ -40,13 +40,13 @@ Problem 1
 # •	omit rows that do not include dumpster-specific data
 # •	round the number of sports balls to the nearest integer and converts the result to an integer variable (using as.integer)
 
-trashwheel = read_excel("./Data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", sheet=1, 
+trashwheel = read_excel("./Data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", sheet="Mr. Trash Wheel", 
                col_types=c("numeric","text","numeric","date","numeric","numeric","numeric",
                            "numeric","numeric","numeric","numeric","numeric","numeric","numeric",
                            "skip","skip","skip"),
                            skip=1) %>%
   janitor::clean_names() %>%
-  drop_na() %>%
+  drop_na(dumpster) %>%
   mutate(sports_balls = round(sports_balls,0),
          sports_balls = as.integer(sports_balls))
   
@@ -56,39 +56,46 @@ trashwheel = read_excel("./Data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", shee
 #omit rows without precipitation data and add a variable year
 
 #2017
-precip_2017 = read_excel("./Data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", sheet=6, 
+precip_2017 = read_excel("./Data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", sheet="2017 Precipitation", 
                col_types=c("numeric","numeric"),
                            skip=1) %>%
   janitor::clean_names() %>%
-  drop_na() %>%
+  drop_na(month) %>%
   rename(precip_tot_in = total) %>%
   mutate(year = 2017)
 #2018
-precip_2018 = read_excel("./Data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", sheet=5, 
+precip_2018 = read_excel("./Data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", sheet="2018 Precipitation", 
                col_types=c("numeric","numeric"),
                            skip=1) %>%
   janitor::clean_names() %>%
-  drop_na() %>%
+  drop_na(month) %>%
   rename(precip_tot_in = total) %>%
   mutate(year = 2018)
 
 ```
 
-```{r combine data}
-#combine precipitation datasets and convert month to a character variable 
+```{r combine and change month}
+precip = bind_rows(precip_2017,precip_2018) 
 
-precip = rbind(precip_2017,precip_2018) %>%
-  mutate(month = month.name[month]) %>%
-  arrange(year, month)
-
+month_df=
+  tibble(
+    month = 1:12,
+    month_name = month.name
+  )
+precip =
+  left_join(precip, month_df, by = "month") %>%
+  select(year, month_name, precip_tot_in) %>%
+  rename(month=month_name)
+  
 ```
+
 
 ```{r}
 # Write a paragraph about these data; you are encouraged to use inline R. Be sure to note the number of observations in both resulting datasets, and give examples of key variables. For available data, what was the total precipitation in 2018? What was the median number of sports balls in a dumpster in 2017?
 ```
 
 
-The dataset "Mr. Trash Wheel" includes `r ncol(trashwheel)` variables and `r nrow(trashwheel)` observations. Specific variable names are `r names(trashwheel[,1:13])` and `r names(trashwheel[,14])`.
+The dataset "Mr. Trash Wheel" - which contains data from the Mr. Trashweel water-wheel vessel trash collector in Baltimore, Maryland - includes `r ncol(trashwheel)` variables and `r nrow(trashwheel)` observations. Specific variable names are `r names(trashwheel[,1:13])` and `r names(trashwheel[,14])`.
 
 `r names(trashwheel[,1])` is an ID variable denoting each time the dumpster is filled `r names(trashwheel[,2])` and `r names(trashwheel[,3])` specify the month and year that dumpster is filled, respectively, and `r names(trashwheel[,4])` shows the specific date. Data were collected between `r min(trashwheel[,3])` and `r max(trashwheel[,3])`. This dataset also specifies total volume of trash collected in each dumpster. Mean dumpster weight in tons over the observation period was `r round(mean(trashwheel$weight_tons),2)` and mean volume in cubic yards was `r round(mean(trashwheel$volume_cubic_yards),2)`. 
 
@@ -101,7 +108,7 @@ The remaining columns specify specific amounts of different types of trash, incl
 and `r names(trashwheel[,13])` (mean = `r round(mean(trashwheel$sports_balls),2)`, median = `r round(median(trashwheel$sports_balls),2)`). Finally, `r names(trashwheel[,14])` shows the number of homes powered by burning the trash contained in each dumpster fill (mean = `r round(mean(trashwheel$homes_powered),2)`, median = `r round(median(trashwheel$homes_powered),2)`).
 
 
-The "precipitation" dataset includes `r ncol(precip)` variables and `r nrow(precip)` observations, with `r nrow(precip)/2` observations each in 2017 and 2018. The variable `r names(precip[,1])` specifies the month, `r names(precip[,3])` specifies the year, and `r names(precip[,2])` specifies the total inches of precipitation for that given month in inches (mean = `r round(mean(precip$precip_tot_in),2)`, median = `r round(median(precip$precip_tot_in),2)`). The total precipitation in 2017 was `r aggregate(precip$precip_tot_in, by=list(Year=precip$year), FUN=sum)$x[1]` and the total precipitation in 2018 was `r aggregate(precip$precip_tot_in, by=list(Year=precip$year), FUN=sum)$x[2]`.
+The "precipitation" dataset includes total rainfall in each month from 2017 and 2018 in Baltimore, Maryland. It contains `r ncol(precip)` variables and `r nrow(precip)` observations, with `r nrow(precip)/2` observations each in 2017 and 2018. The variable `r names(precip[,1])` specifies the month, `r names(precip[,3])` specifies the year, and `r names(precip[,2])` specifies the total inches of precipitation for that given month in inches (mean = `r round(mean(precip$precip_tot_in),2)`, median = `r round(median(precip$precip_tot_in),2)`). The total precipitation in 2017 was `r aggregate(precip$precip_tot_in, by=list(Year=precip$year), FUN=sum)$x[1]` and the total precipitation in 2018 was `r aggregate(precip$precip_tot_in, by=list(Year=precip$year), FUN=sum)$x[2]`.
 
 Problem 2
 ```{r read data}
@@ -182,10 +189,12 @@ pols_data = read_csv(file = "./Data/pols-month.csv", col_types="ciiiiiiii") %>%
   separate(mon, into = c("year", "month", "day"), sep = "-") %>%
   mutate(year=as.integer(year),
          month=as.integer(month),
-         month = month.name[month], 
          president=prez_gop) %>%
   mutate(president=recode(president, `0` = "dem", `1` = "gop", `2` = "gop")) %>%
-  select(-c(prez_dem,prez_gop,day))
+  left_join(month_df, by = "month") %>%
+  select(-c(prez_dem,prez_gop,day,month)) %>%
+  rename(month=month_name) %>%
+  select(year, month,everything())
 ```
 
 ```{r import snp data}
@@ -193,9 +202,10 @@ snp_data = read_csv(file = "./Data/snp.csv", col_types="cd") %>%
   janitor::clean_names() %>%
   separate(date, into = c("month", "day", "year"), sep = "/")%>%
   mutate(year=as.integer(year),
-         month=as.integer(month),
-         month = month.name[month]) %>%
-  select(year, month,close)
+         month=as.integer(month)) %>%
+  left_join(month_df, by = "month") %>%
+  select(year, month_name, close) %>%
+  rename(month=month_name) 
 
 ```
 
